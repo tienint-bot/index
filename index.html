@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025年10月互動月曆 - 黃挺瑋 (Weiwei Huang)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #fdfaf6;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+        .calendar-day {
+            transition: all 0.2s ease-in-out;
+        }
+        .calendar-day:not(.empty):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        .has-note::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #84cc16; /* lime-500 */
+        }
+        .modal-bg-image {
+             background-image: url('https://media.zenfs.com/en/news_tvbs_com_tw_938/31206d289945037dd714e8c15668d276');
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 bg-[#fdfaf6]">
+    <div class="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-xl flex flex-col md:flex-row overflow-hidden">
+        
+        <div class="w-full md:w-1/3 flex-shrink-0 bg-cover bg-center" style="background-image: url('https://i.scdn.co/image/ab676161000051744dee0a81c921bfc21b653ad2')">
+            <div class="h-full w-full bg-black bg-opacity-30 p-8 flex flex-col justify-end text-white">
+                <h1 class="text-5xl font-bold drop-shadow-lg">十月</h1>
+                <p class="text-2xl font-light drop-shadow-lg">2025</p>
+                <p class="mt-4 text-lg">黃挺瑋 (Weiwei Huang)</p>
+            </div>
+        </div>
+
+        <div class="w-full md:w-2/3 p-6 md:p-8">
+            <div class="flex justify-between items-center mb-6">
+                 <h2 class="text-3xl font-bold text-gray-800">2025年10月</h2>
+            </div>
+
+            <div class="grid grid-cols-7 gap-2 text-center text-base font-semibold text-gray-500 mb-2">
+                <div>日</div>
+                <div>一</div>
+                <div>二</div>
+                <div>三</div>
+                <div>四</div>
+                <div>五</div>
+                <div>六</div>
+            </div>
+
+            <div id="calendar-grid" class="calendar-grid">
+            </div>
+        </div>
+    </div>
+
+    <div id="note-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
+            <div class="w-full md:w-2/5 bg-cover bg-center modal-bg-image"></div>
+            <div class="w-full md:w-3/5 bg-white p-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">記事</h3>
+                <p id="modal-date" class="text-lg font-medium text-teal-600 mb-4"></p>
+                <textarea id="note-input" rows="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" placeholder="在這裡寫下您的筆記..."></textarea>
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button id="close-modal-btn" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-semibold">關閉</button>
+                    <button id="save-note-btn" class="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition font-semibold">儲存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const noteModal = document.getElementById('note-modal');
+            const modalDate = document.getElementById('modal-date');
+            const noteInput = document.getElementById('note-input');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const saveNoteBtn = document.getElementById('save-note-btn');
+
+            let selectedDate = null;
+            const year = 2025;
+            const month = 9;
+
+            function generateCalendar() {
+                calendarGrid.innerHTML = '';
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.classList.add('calendar-day', 'empty', 'bg-gray-50', 'rounded-lg');
+                    calendarGrid.appendChild(emptyCell);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.classList.add('calendar-day', 'relative', 'p-2', 'aspect-square', 'flex', 'flex-col', 'items-center', 'justify-center', 'cursor-pointer', 'rounded-lg', 'bg-white', 'border', 'border-gray-200', 'shadow-sm');
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    dayCell.dataset.date = dateStr;
+
+                    const dayNumber = document.createElement('span');
+                    dayNumber.textContent = day;
+                    dayNumber.classList.add('text-lg', 'font-medium', 'text-gray-700');
+                    dayCell.appendChild(dayNumber);
+
+                    if (day === 10) {
+                        dayCell.classList.add('bg-teal-50', 'border-teal-200');
+                        const holidayText = document.createElement('span');
+                        holidayText.textContent = '國慶日';
+                        holidayText.classList.add('text-xs', 'text-teal-700', 'mt-1');
+                        dayCell.appendChild(holidayText);
+                    }
+                    
+                    const currentDay = new Date().getDate();
+                    const currentMonth = new Date().getMonth();
+                    const currentYear = new Date().getFullYear();
+                    if(day === currentDay && month === currentMonth && year === currentYear) {
+                         dayNumber.classList.add('bg-teal-500', 'text-white', 'rounded-full', 'w-8', 'h-8', 'flex', 'items-center', 'justify-center');
+                    }
+
+
+                    if (localStorage.getItem(`note-${dateStr}`)) {
+                        dayCell.classList.add('has-note');
+                    }
+
+                    dayCell.addEventListener('click', () => openModal(dateStr, day));
+                    calendarGrid.appendChild(dayCell);
+                }
+            }
+
+            function openModal(dateStr, day) {
+                selectedDate = dateStr;
+                modalDate.textContent = `2025年 10月 ${day}日`;
+                noteInput.value = localStorage.getItem(`note-${selectedDate}`) || '';
+                noteModal.classList.remove('hidden');
+            }
+
+            function closeModal() {
+                noteModal.classList.add('hidden');
+            }
+
+            function saveNote() {
+                const noteText = noteInput.value.trim();
+                const dayCell = document.querySelector(`.calendar-day[data-date='${selectedDate}']`);
+                if (noteText) {
+                    localStorage.setItem(`note-${selectedDate}`, noteText);
+                    dayCell.classList.add('has-note');
+                } else {
+                    localStorage.removeItem(`note-${selectedDate}`);
+                    dayCell.classList.remove('has-note');
+                }
+                closeModal();
+            }
+
+            closeModalBtn.addEventListener('click', closeModal);
+            saveNoteBtn.addEventListener('click', saveNote);
+            noteModal.addEventListener('click', (e) => {
+                if (e.target === noteModal) {
+                    closeModal();
+                }
+            });
+
+            generateCalendar();
+        });
+    </script>
+</body>
+</html>
